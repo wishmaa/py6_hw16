@@ -16,7 +16,7 @@ class RegPage:
         self.fill_currentadress = browser.element("#currentAddress")
 
     def open(self):
-        browser.open('/automation-practice-form')
+        browser.open('https://demoqa.com/automation-practice-form')
         browser.element(".practice-form-wrapper").should(have.text("Student Registration Form"))
         browser.driver.execute_script("$('footer').remove()")
         browser.driver.execute_script("$('#fixedban').remove()")
