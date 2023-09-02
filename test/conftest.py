@@ -1,11 +1,11 @@
 from pathlib import Path
 import pytest
 import os
-from selenium import webdriver
 from dotenv import load_dotenv
-from selene import browser
-
+from selene import Browser, Config
+from selenium.webdriver.chrome.options import Options
 from utils import attach
+from selenium import webdriver
 
 
 DEFAULT_BROWSER_VERSION = "100.0"
@@ -29,13 +29,13 @@ def load_env():
 
 
 @pytest.fixture(scope='function')
-def setup_browser():
-    browser.config.base_url = 'https://demoqa.com'
-
-    options = webdriver.ChromeOptions()
-    options.browser_version = "100.0"
-
+def setup_browser(request):
+    browser_version = request.config.getoption('--browser_version')
+    browser_version = browser_version if browser_version != "" else DEFAULT_BROWSER_VERSION
+    options = Options()
     selenoid_capabilities = {
+        "browserName": "chrome",
+        "browserVersion": browser_version,
         "selenoid:options": {
             "enableVNC": True,
             "enableVideo": True
@@ -43,15 +43,14 @@ def setup_browser():
     }
     options.capabilities.update(selenoid_capabilities)
 
-    browser.config.driver_options = options
     login = os.getenv('LOGIN')
     password = os.getenv('PASSWORD')
 
-    browser.config.driver_remote_url = (
-        f"https://{login}:{password}@selenoid.autotests.cloud/wd/hub"
+    driver = webdriver.Remote(
+        command_executor=f"https://{login}:{password}@selenoid.autotests.cloud/wd/hub",
+        options=options
     )
-    browser.config.window_width = 1920
-    browser.config.window_height = 1080
+    browser = Browser(Config(driver))
 
     yield browser
 
